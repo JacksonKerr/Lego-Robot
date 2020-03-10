@@ -21,14 +21,14 @@ cl = ColorSensor()
 # gs = GyroSensor()		# gyrosensor is not there
 us = UltrasonicSensor()
 
-defaultSpeed = 25  # 25% of max speed
-defaultAngle = 90  # degrees
+defaultSpeed = 15  # 25% of max speed
+defaultAngle = 85  # degrees
 defaultStep = 1
 defaultBlack = 20  # light intensity
 defaultDist = 10  # cm
 
-firstMoves = 5  # initial moves
-secondMoves = 5  # happens after initial moves and turning
+firstMoves = 7  # initial moves
+secondMoves = 6  # happens after initial moves and turning
 
 
 # rev=True does the reverse of the function
@@ -81,65 +81,6 @@ def object_near(distance=defaultDist):
     else:
         return False
 
-
-def look():
-    # this is what the robot will be doing continuously
-    # this runs on a thread
-    squares = 0  # number of black squares travelled
-    black = True  # True means robot is in a black square
-    if is_black():
-        black = True
-        squares += 1
-    else:
-        black = False
-    while True:
-
-        # This is for testing the sonar
-        '''
-        if object_near():
-            stop()
-            print("Object found.", file=stderr)
-            break
-        '''
-        if ts.is_pressed:  # touched something
-            stop()
-            #  print("Contact.", file=stderr)  # file=stderr prints to console instead of robot display
-            step_ahead(1, True)
-            break
-        if not is_black():
-
-            # The lines below are for testing spin_right function
-            '''
-            stop()
-            sleep(1)
-            spin_right(90)
-            sleep(2)
-            spin_right(180, True)
-            sound.play_tone(700, 1)
-            break
-            '''
-            if black:
-                # if not in black area but was previously in black area
-                # then we left a black square
-                sound.beep()
-                print("Left black square.")
-                black = False
-        else:
-            if not black:
-                # if in black area but was previously in non-black area
-                # then we entered a black square
-                sound.beep()
-                print("Entered black square.")
-                black = True
-                squares += 1
-                if squares == firstMoves:
-                    # turn after completing first moves
-                    stop()
-                    spin_right(90)
-                    go_straight()
-                if squares == firstMoves + secondMoves:
-                    stop()
-                    break
 
 
 # Use this while calibrating

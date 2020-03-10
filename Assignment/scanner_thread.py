@@ -9,18 +9,20 @@
 import robot_moves
 import time
 
-blackness = 100  # Start tile is black
-checkDelay = 0.01  # The time between scanner checks in seconds
+blackness = 50  # Start tile is black
+checkDelay = 0.001  # The time between scanner checks in seconds
 
 
 def recently_black():
-    return blackness > 50
+    return blackness > 25
 
 
 def main_loop():
+    global blackness
     while True:
-        if robot_moves.is_black() and blackness < 100:
+        if robot_moves.is_black() and blackness < 50:
             blackness += 1
-        elif blackness > 0:
+        elif (not robot_moves.is_black()) and blackness > 0:
             blackness -= 1
         time.sleep(checkDelay)
+
