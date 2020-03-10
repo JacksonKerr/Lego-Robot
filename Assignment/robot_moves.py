@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-from ev3dev2.sound import Sound
 from ev3dev2.led import Leds
+from ev3dev2.sound import Sound
 from ev3dev2.button import Button
 from ev3dev2.motor import LargeMotor, MoveTank, MoveSteering, OUTPUT_B, OUTPUT_C
 from ev3dev2.motor import SpeedDPS, SpeedRPM, SpeedRPS, SpeedDPM, SpeedPercent
@@ -32,6 +32,9 @@ secondMoves = 5  # happens after initial moves and turning
 
 
 # rev=True does the reverse of the function
+
+def test_beep():
+    sound.tone(1000, 200)  # 1000 Hz for 0.2 s
 
 def go_straight(speed=defaultSpeed, rev=False):
     # rev=True will make it go backwards
@@ -93,28 +96,28 @@ def look():
 
         # This is for testing the sonar
         '''
-		if object_near():
-			stop()
-			print("Object found.", file=stderr)
-			break
-		'''
+        if object_near():
+            stop()
+            print("Object found.", file=stderr)
+            break
+        '''
         if ts.is_pressed:  # touched something
             stop()
-            #print("Contact.", file=stderr)  # file=stderr prints to console instead of robot display
+            #  print("Contact.", file=stderr)  # file=stderr prints to console instead of robot display
             step_ahead(1, True)
             break
         if not is_black():
 
             # The lines below are for testing spin_right function
             '''
-			stop()
-			sleep(1)
-			spin_right(90)
-			sleep(2)
-			spin_right(180, True)
-			sound.play_tone(700, 1)
-			break
-			'''
+            stop()
+            sleep(1)
+            spin_right(90)
+            sleep(2)
+            spin_right(180, True)
+            sound.play_tone(700, 1)
+            break
+            '''
             if black:
                 # if not in black area but was previously in black area
                 # then we left a black square
