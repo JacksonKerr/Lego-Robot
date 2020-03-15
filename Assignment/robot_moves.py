@@ -27,8 +27,10 @@ defaultStep = 1
 defaultBlack = 20  # light intensity
 defaultDist = 10  # cm
 
-firstMoves = 7  # initial moves
+
+firstMoves = 2  # initial moves
 secondMoves = 6  # happens after initial moves and turning
+thirdMoves = 6  # third part of test
 
 
 # rev=True does the reverse of the function
@@ -58,7 +60,6 @@ def step_ahead(size=defaultStep, speed=25, rev=False):
         drive.on_for_rotations(speed, speed, 0.5 * size)
     else:
         drive.on_for_rotations(speed, speed, -0.5 * size)
-
 
 def stop():
     # stop all motors

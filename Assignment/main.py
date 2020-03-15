@@ -9,6 +9,13 @@ import robot_moves
 import time
 from threading import Thread
 
+from ev3dev2.led import Leds
+from ev3dev2.sound import Sound
+from ev3dev2.button import Button
+from ev3dev2.motor import LargeMotor, MoveTank, MoveSteering, OUTPUT_B, OUTPUT_C
+from ev3dev2.motor import SpeedDPS, SpeedRPM, SpeedRPS, SpeedDPM, SpeedPercent
+from ev3dev2.sensor.lego import ColorSensor, TouchSensor, InfraredSensor, UltrasonicSensor, GyroSensor
+
 print("-------------")
 print("  main.py")
 print("-------------")
@@ -17,16 +24,20 @@ scanThread = Thread(target=scanner_thread.main_loop)  # Create the thread that c
 scanThread.setDaemon(True)  # Make the thread a deamon ( will stop when main program stops )
 scanThread.start()
 
-def look():
+num_black_squares = 0
+
+
+def continuous_checking():
+    global num_black_squares
     # this is what the robot will be doing continuously
     # this runs on a thread
     num_black_squares = 0  # number of black squares travelled
     black = scanner_thread.recently_black()  # True means robot is in a black square
-    if scanner_thread.recently_black():
-        prev_black = scanner_thread.recently_black()
+    if black:
+        prev_black = True
         num_black_squares += 1
     else:
-        num_black_black = False
+        prev_black = False
     while True:
 
         # This is for testing the sonar
@@ -36,41 +47,77 @@ def look():
             print("Object found.", file=stderr)
             break
         '''
-        if robot_moves.ts.is_pressed:  # touched something
+        if robot_moves.ts.is_pressed:  # If the robot bumps into something
             robot_moves.stop()
             #  print("Contact.", file=stderr)  # file=stderr prints to console instead of robot display
             robot_moves.step_ahead(1, True)
             break
-        if not scanner_thread.recently_black():
-            if prev_black:
-                # if not in black area but was previously in black area
-                # then we left a black square
+        if scanner_thread.recently_black():
+            if not prev_black:  # if in black tile, but was on a white tile
                 robot_moves.test_beep()
-                print("Left black square.")
-                prev_black = False
-        else:
-            if not prev_black:
-                # if in black area but was previously in non-black area
-                # then we entered a black square
-                robot_moves.test_beep()
-                print("Entered black square.")
+                print("Entered black square, Left White")
                 prev_black = True
                 num_black_squares += 1
-                if num_black_squares == robot_moves.firstMoves:
-                    # turn after completing first moves
-                    robot_moves.stop()
-                    robot_moves.spin_right(90)
-                    robot_moves.go_straight()
-                if num_black_squares == robot_moves.firstMoves + robot_moves.secondMoves:
-                    robot_moves.stop()
-                    break
+        else:
+            if prev_black:  # And was previously black
+                robot_moves.test_beep()
+                print("Left black square, Entered White")
+                prev_black = False
 
-lookThread = Thread(target=look)  # Create the thread that checks the colour
-lookThread.setDaemon(True)  # Make the thread a deamon ( will stop when main program stops )
-lookThread.start()
 
-robot_moves.go_straight()
+def turn_in_middle():
+    """ Makes the robot creep to the edge of the black tile it is currently on
+        then go forwards to the middle of the tile and turn 90 degrees right """
+    robot_moves.stop()  # Stop all movement
+    while scanner_thread.recently_black():  # Go backwards slowly until you are off the black square
+        robot_moves.go_straight(2, True)
+    robot_moves.stop()
+    '''0.7 rotations is half one black square'''
+    drive = MoveTank(OUTPUT_B, OUTPUT_C)  # both motors
+    drive.on_for_rotations(5, 5, 0.47)
 
-while True:
-    print(scanner_thread.recently_black())
-    time.sleep(0.1)
+    robot_moves.spin_right(85, 2)  # Turn 90 degrees to the right (Not Accurate)
+    robot_moves.go_straight()
+
+
+def stage_one():
+    global num_black_squares
+    robot_moves.go_straight()
+    while True:
+        if num_black_squares == robot_moves.firstMoves:
+            turn_in_middle()
+            num_black_squares = 0
+            break
+
+
+def stage_two():
+    global num_black_squares
+    robot_moves.go_straight()
+    while True:
+        if num_black_squares == robot_moves.secondMoves:  # turn after completing first moves
+            turn_in_middle()
+            num_black_squares = 0
+            break
+
+
+def stage_three():
+    robot_moves.go_straight()
+
+
+'''
+-----------------------------------------------
+
+            Starting Instructions
+
+-----------------------------------------------
+'''
+
+# Start's the checking thread
+continuous_checking_thread = Thread(target=continuous_checking)  # Create the thread that checks the colour
+continuous_checking_thread.setDaemon(True)  # Make the thread a deamon ( will stop when main program stops )
+continuous_checking_thread.start()
+
+# Start's robot's first task
+stage_one()
+stage_two()
+stage_three()
