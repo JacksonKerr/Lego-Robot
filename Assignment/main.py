@@ -9,12 +9,12 @@ import robot_moves
 import time
 from threading import Thread
 
-from ev3dev2.led import Leds
-from ev3dev2.sound import Sound
-from ev3dev2.button import Button
-from ev3dev2.motor import LargeMotor, MoveTank, MoveSteering, OUTPUT_B, OUTPUT_C
-from ev3dev2.motor import SpeedDPS, SpeedRPM, SpeedRPS, SpeedDPM, SpeedPercent
-from ev3dev2.sensor.lego import ColorSensor, TouchSensor, InfraredSensor, UltrasonicSensor, GyroSensor
+# from ev3dev2.led import Leds
+# from ev3dev2.sound import Sound
+# from ev3dev2.button import Button
+# from ev3dev2.motor import LargeMotor, MoveTank, MoveSteering, OUTPUT_B, OUTPUT_C
+# from ev3dev2.motor import SpeedDPS, SpeedRPM, SpeedRPS, SpeedDPM, SpeedPercent
+# from ev3dev2.sensor.lego import ColorSensor, TouchSensor, InfraredSensor, UltrasonicSensor, GyroSensor
 
 print("-------------")
 print("  main.py")
@@ -26,9 +26,9 @@ scanThread.start()
 
 num_black_squares = 0
 
-
 def continuous_checking():
     global num_black_squares
+    found = False
     # this is what the robot will be doing continuously
     # this runs on a thread
     num_black_squares = 0  # number of black squares travelled
@@ -40,19 +40,19 @@ def continuous_checking():
         prev_black = False
     while True:
 
-        # This is for testing the sonar
-        '''
-        if object_near():
-            stop()
-            print("Object found.", file=stderr)
-            break
-        '''
-        if robot_moves.ts.is_pressed:  # If the robot bumps into something
+        if robot_moves.object_near() and (not found):
             robot_moves.stop()
-            #  print("Contact.", file=stderr)  # file=stderr prints to console instead of robot display
-            robot_moves.step_ahead(1, True)
+            found = True
+        elif robot_moves.ts.is_pressed:  # If the robot bumps into something
+            robot_moves.stop()
+            sleep(2)
+            robot_moves.go_straight(speed=100)
+            sleep(5)
             break
-        if scanner_thread.recently_black():
+            #  print("Contact.", file=stderr)  # file=stderr prints to console instead of robot display
+            # robot_moves.step_ahead(size=1, speed=5, rev=True)
+            break
+        elif scanner_thread.recently_black():
             if not prev_black:  # if in black tile, but was on a white tile
                 robot_moves.test_beep()
                 print("Entered black square, Left White")
@@ -65,23 +65,25 @@ def continuous_checking():
                 prev_black = False
 
 
-def turn_in_middle():
+def turn_in_middle(rev=False):
     """ Makes the robot creep to the edge of the black tile it is currently on
         then go forwards to the middle of the tile and turn 90 degrees right """
     robot_moves.stop()  # Stop all movement
     while scanner_thread.recently_black():  # Go backwards slowly until you are off the black square
-        robot_moves.go_straight(2, True)
+        robot_moves.go_straight(speed=2, rev=True)
     robot_moves.stop()
     '''0.7 rotations is half one black square'''
-    drive = MoveTank(OUTPUT_B, OUTPUT_C)  # both motors
-    drive.on_for_rotations(5, 5, 0.47)
+    # drive = MoveTank(OUTPUT_B, OUTPUT_C)  # both motors
+    # drive.on_for_rotations(5, 5, 0.47)
+    robot_moves.step_ahead(size=0.47, speed=5)
 
-    robot_moves.spin_right(85, 2)  # Turn 90 degrees to the right (Not Accurate)
-    robot_moves.go_straight()
+    robot_moves.spin_right(angle=90, speed=4, rev=rev)  # Turn 90 degrees to the right (Not Accurate)
+    # robot_moves.go_straight()
 
 
 def stage_one():
     global num_black_squares
+    time.sleep(1)  # Wait's one second before moving to ensure robot is on black square
     robot_moves.go_straight()
     while True:
         if num_black_squares == robot_moves.firstMoves:
@@ -92,8 +94,19 @@ def stage_one():
 
 def stage_two():
     global num_black_squares
-    robot_moves.go_straight()
     while True:
+        # r = 2.16
+        # c = 13.57
+        # d = 9.5
+        # 0.7 steps min = 9.5 cm
+        # 0.95 halfway into square
+        while robot_moves.is_black():
+            robot_moves.go_straight(10)
+        robot_moves.stop()
+        robot_moves.step_ahead(size=0.95)
+        robot_moves.stop()
+        time.sleep(1.5)
+        robot_moves.test_beep(3000)
         if num_black_squares == robot_moves.secondMoves:  # turn after completing first moves
             turn_in_middle()
             num_black_squares = 0
@@ -101,7 +114,28 @@ def stage_two():
 
 
 def stage_three():
+    global num_black_squares
     robot_moves.go_straight()
+    while True:
+        if num_black_squares == robot_moves.thirdMoves:  # turn after completing first moves
+            turn_in_middle(True)
+            num_black_squares = 0
+            break
+
+def stage_four():
+    global num_black_squares
+    robot_moves.go_straight()
+    while True:
+        if num_black_squares == robot_moves.fourthMoves:  # turn after completing first moves
+            num_black_squares = 0
+            robot_moves.stop()
+            robot_moves.spin_right(angle=360, speed=10)
+            break
+
+def stage_five():
+    robot_moves.go_straight()
+    robot_moves.stop()
+
 
 
 '''
@@ -120,4 +154,6 @@ continuous_checking_thread.start()
 # Start's robot's first task
 stage_one()
 stage_two()
-stage_three()
+#stage_three()
+#stage_four()
+#stage_five()
