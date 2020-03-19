@@ -34,11 +34,10 @@ defaultBlack = 20  # light intensity
 defaultDist = 40  # cm
 
 
-firstMoves = 2  # initial moves
-secondMoves = 7  # happens after initial moves and turning
-thirdMoves = 7  # third part of test
-fourthMoves = 7 # to get near the milk can
-
+firstMoves = 2  # initial moves 2
+secondMoves = 7  # happens after initial moves and turning 7
+thirdMoves = 7  # third part of test 7
+fourthMoves = 7 # to get near the milk can 7
 
 # rev=True does the reverse of the function
 
@@ -67,7 +66,7 @@ def step_ahead(size=defaultStep, speed=defaultSpeed, rev=False):
     if not rev:
         drive.on_for_rotations(speed, speed, size)
     else:
-        drive.on_for_rotations(speed, speed, size)
+        drive.on_for_rotations(-speed, -speed, size)
 
 def stop():
     # stop all motors
