@@ -26,14 +26,22 @@ ts = TouchSensor()
 cl = ColorSensor()
 us = UltrasonicSensor()
 
-defaultSpeed = 10  # 10% of max speed
+defaultSpeed = 20  # 10% of max speed
 defaultAngle = 90  # degrees
 defaultBlack = 20  # light intensity
-defaultDist = 40   # cm
-
+defaultDist = 30   # cm
+num_sonar_samples = 20
 
 def beep(freq=1000):
     sound.tone(freq, 200)
+
+
+def object_touching():
+    # Returns true or false if touch sensor is touching an object.
+    if ts.is_pressed:
+        return True
+    else:
+        return False
 
 
 def go_straight(speed=defaultSpeed, rev=False):
@@ -76,7 +84,9 @@ def on_black():
 
 def object_near(distance=defaultDist):
     # uses sonar to detect if an object is close
-    if us.distance_centimeters < distance:
+    total_distance = 0
+    for x in range(0, num_sonar_samples):
+        total_distance += us.distance_centimeters
+    if total_distance/num_sonar_samples < distance:
         return True
-    else:
-        return False
+    return False
