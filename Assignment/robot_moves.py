@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-    alternate_robot_moves.py
+    robot_moves.py
 
     Contains basic functionality of robot.
     Functions involving basic movement, turning, using sensors

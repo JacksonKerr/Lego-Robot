@@ -4,7 +4,7 @@
     Test Code - Jackson Kerr
 """
 
-import alternate_robot_moves
+import robot_moves
 import time
 from threading import Thread
 
