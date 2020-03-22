@@ -26,7 +26,7 @@ ts = TouchSensor()
 cl = ColorSensor()
 us = UltrasonicSensor()
 
-defaultSpeed = 20  # 10% of max speed
+defaultSpeed = 15  # 10% of max speed
 defaultAngle = 90  # degrees
 defaultBlack = 20  # light intensity
 defaultDist = 30   # cm
